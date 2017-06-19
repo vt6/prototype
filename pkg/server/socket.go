@@ -38,12 +38,22 @@ func (s *Socket) Listen() (err error) {
 	return nil
 }
 
-//Run accepts connections on this socket forever, then cleans up the socket
-//before exiting.
-func (s *Socket) Run() error {
-	defer s.listener.Close()
-	defer os.Remove(s.socketPath)
+//Path returns the path to the server socket, if Listen has already been called.
+func (s *Socket) Path() string {
+	return s.socketPath
+}
 
+//Close closes and removes the underlying socket.
+func (s *Socket) Close() error {
+	err := s.listener.Close()
+	if err != nil {
+		s.Logger.Printf("cannot close socket: %s\n", err.Error())
+	}
+	return os.Remove(s.socketPath)
+}
+
+//Run accepts connections on this socket forever.
+func (s *Socket) Run() {
 	for {
 		conn, err := s.listener.AcceptUnix()
 		if err != nil {
